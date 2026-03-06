@@ -341,6 +341,13 @@
             text-overflow: ellipsis;
         }
 
+        .meta-val.full {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
+            word-break: break-word;
+        }
+
         .card-footer {
             display: flex;
             align-items: center;
@@ -542,7 +549,7 @@
         <div class="meta">
           <div class="meta-item">
             <span class="meta-lbl">Solicitante</span>
-            <span class="meta-val" title="${esc(t.requester)}">${esc(t.requester) || '—'}</span>
+            <span class="meta-val full">${esc(t.requester) || '—'}</span>
           </div>
           <div class="meta-item">
             <span class="meta-lbl">Unidade</span>
@@ -554,7 +561,7 @@
           </div>
           <div class="meta-item">
             <span class="meta-lbl">Responsável</span>
-            <span class="meta-val" title="${esc(t.assignee)}">${esc(t.assignee) || 'Não atribuído'}</span>
+            <span class="meta-val full">${esc(t.assignee) || 'Não atribuído'}</span>
           </div>
         </div>
       </div>
