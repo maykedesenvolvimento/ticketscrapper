@@ -313,8 +313,8 @@
 
         .meta {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: .3rem .75rem;
+            grid-template-columns: 1fr;
+            gap: .4rem;
             margin-top: .15rem;
         }
 
@@ -552,12 +552,8 @@
             <span class="meta-val full">${esc(t.requester) || '—'}</span>
           </div>
           <div class="meta-item">
-            <span class="meta-lbl">Unidade</span>
-            <span class="meta-val" title="${esc(t.unit)}">${esc(t.unit) || '—'}</span>
-          </div>
-          <div class="meta-item">
             <span class="meta-lbl">Área / Serviço</span>
-            <span class="meta-val" title="${esc(t.area)}">${esc(t.area) || '—'}</span>
+            <span class="meta-val full">${esc(t.area) || '—'}</span>
           </div>
           <div class="meta-item">
             <span class="meta-lbl">Responsável</span>
