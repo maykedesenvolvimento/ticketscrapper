@@ -504,7 +504,7 @@
         function statusCls(status = '') {
             const s = status.toUpperCase();
             if (s.includes('NOVA')) return 's-nova';
-            if (s.includes('ANDAMENTO')) return 's-andamento';
+            if (s.includes('ANDAMENTO') || s.includes('ATENDIMENTO')) return 's-andamento';
             if (s.includes('AGUARDANDO')) return 's-aguardando';
             if (s.includes('RESOLV') || s.includes('FECHA') || s.includes('CONCLU')) return 's-resolvida';
             if (s.includes('CANCEL')) return 's-cancelada';
@@ -574,7 +574,7 @@
                 counts[sc].n++;
             }
             const names = {
-                's-nova': 'Nova', 's-andamento': 'Em andamento', 's-aguardando': 'Aguardando',
+                's-nova': 'Nova', 's-andamento': 'Em atendimento', 's-aguardando': 'Aguardando',
                 's-resolvida': 'Resolvida/Fechada', 's-cancelada': 'Cancelada', 's-other': 'Outros',
             };
             return Object.values(counts).map(({ sc, n }) =>
