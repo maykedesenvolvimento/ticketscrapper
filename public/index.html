@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Chamados — TI</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0b0d14;
+            --surface: #13162a;
+            --surface2: #1b1f36;
+            --border: #252a45;
+            --text: #e2e8f0;
+            --muted: #7c87a8;
+
+            --nova: #3b82f6;
+            --nova-bg: rgba(59, 130, 246, .13);
+            --andamento: #f59e0b;
+            --andamento-bg: rgba(245, 158, 11, .13);
+            --aguardando: #f97316;
+            --aguardando-bg: rgba(249, 115, 22, .13);
+            --resolvida: #22c55e;
+            --resolvida-bg: rgba(34, 197, 94, .13);
+            --cancelada: #6b7280;
+            --cancelada-bg: rgba(107, 114, 128, .13);
+            --other: #8b5cf6;
+            --other-bg: rgba(139, 92, 246, .13);
+
+            --accent: #6366f1;
+        }
+
+        html,
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* ── Header ───────────────────────────────────── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 2rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            gap: 1rem;
+        }
+
+        .hd-left {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+        }
+
+        .hd-icon {
+            width: 2.6rem;
+            height: 2.6rem;
+            background: var(--accent);
+            border-radius: .5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .hd-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -.02em;
+        }
+
+        .hd-title span {
+            color: var(--accent);
+        }
+
+        .hd-sub {
+            font-size: .78rem;
+            color: var(--muted);
+            margin-top: .1rem;
+        }
+
+        .hd-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .stat {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat span {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        /* countdown ring */
+        .ring {
+            position: relative;
+            width: 44px;
+            height: 44px;
+        }
+
+        .ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring .track {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 3;
+        }
+
+        .ring .progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 63;
+            transition: stroke-dashoffset .9s linear;
+        }
+
+        .ring .lbl {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .68rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* ── Status bar ───────────────────────────────── */
+        .status-bar {
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
+            padding: .65rem 2rem;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .28rem .7rem;
+            border-radius: 2rem;
+            font-size: .78rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .pill .dot {
+            width: .45rem;
+            height: .45rem;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* ── Main grid ────────────────────────────────── */
+        main {
+            padding: 1.5rem 2rem;
+        }
+
+        .error-bar {
+            background: rgba(239, 68, 68, .1);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #f87171;
+            border-radius: .5rem;
+            padding: .65rem 1.1rem;
+            margin-bottom: 1.25rem;
+            font-size: .88rem;
+            display: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.2rem;
+        }
+
+        /* skeleton */
+        .skel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .75rem;
+            height: 230px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: .35
+            }
+
+            50% {
+                opacity: .75
+            }
+        }
+
+        /* empty state */
+        .empty {
+            grid-column: 1/-1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 45vh;
+            gap: .9rem;
+            color: var(--muted);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .empty .ico {
+            font-size: 4rem;
+        }
+
+        /* ── Card ─────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .75rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform .15s, box-shadow .15s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .85rem 1.1rem .6rem;
+            border-bottom: 1px solid var(--border);
+            gap: .5rem;
+        }
+
+        .card-id {
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: .04em;
+        }
+
+        .card-id em {
+            color: var(--accent);
+            font-style: normal;
+        }
+
+        .badges {
+            display: flex;
+            gap: .35rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .badge {
+            font-size: .68rem;
+            font-weight: 700;
+            padding: .18rem .5rem;
+            border-radius: .3rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            border: 1px solid transparent;
+        }
+
+        .card-body {
+            padding: .85rem 1.1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .desc {
+            font-size: .93rem;
+            line-height: 1.55;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .3rem .75rem;
+            margin-top: .15rem;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: .08rem;
+            min-width: 0;
+        }
+
+        .meta-lbl {
+            font-size: .66rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+        }
+
+        .meta-val {
+            font-size: .83rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .55rem 1.1rem;
+            background: var(--surface2);
+            font-size: .76rem;
+            color: var(--muted);
+            gap: .5rem;
+        }
+
+        .wait {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .wait.urgent {
+            color: #f87171;
+        }
+
+        .wait.warning {
+            color: #fbbf24;
+        }
+
+        /* status colour classes */
+        .s-nova {
+            color: var(--nova);
+            background: var(--nova-bg);
+            border-color: var(--nova);
+        }
+
+        .s-andamento {
+            color: var(--andamento);
+            background: var(--andamento-bg);
+            border-color: var(--andamento);
+        }
+
+        .s-aguardando {
+            color: var(--aguardando);
+            background: var(--aguardando-bg);
+            border-color: var(--aguardando);
+        }
+
+        .s-resolvida {
+            color: var(--resolvida);
+            background: var(--resolvida-bg);
+            border-color: var(--resolvida);
+        }
+
+        .s-cancelada {
+            color: var(--cancelada);
+            background: var(--cancelada-bg);
+            border-color: var(--cancelada);
+        }
+
+        .s-other {
+            color: var(--other);
+            background: var(--other-bg);
+            border-color: var(--other);
+        }
+
+        /* card left accent */
+        .card.s-nova {
+            border-left-color: var(--nova);
+            border-left-width: 3px;
+        }
+
+        .card.s-andamento {
+            border-left-color: var(--andamento);
+            border-left-width: 3px;
+        }
+
+        .card.s-aguardando {
+            border-left-color: var(--aguardando);
+            border-left-width: 3px;
+        }
+
+        .card.s-resolvida {
+            border-left-color: var(--resolvida);
+            border-left-width: 3px;
+        }
+
+        .card.s-cancelada {
+            border-left-color: var(--cancelada);
+            border-left-width: 3px;
+        }
+
+        .card.s-other {
+            border-left-color: var(--other);
+            border-left-width: 3px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="hd-left">
+            <div class="hd-icon">🎫</div>
+            <div>
+                <div class="hd-title">Painel de <span>Chamados</span></div>
+                <div class="hd-sub">Setor de Tecnologia da Informação</div>
+            </div>
+        </div>
+        <div class="hd-right">
+            <div class="stat">
+                <strong id="total-count">—</strong>
+                <span>chamados</span>
+            </div>
+            <div class="stat">
+                <strong id="last-updated">—</strong>
+                <span>última atualização</span>
+            </div>
+            <div class="ring" title="Próxima atualização automática">
+                <svg viewBox="0 0 24 24" width="44" height="44">
+                    <circle class="track" cx="12" cy="12" r="10" />
+                    <circle class="progress" cx="12" cy="12" r="10" id="ring-circle" />
+                </svg>
+                <div class="lbl" id="ring-label">60</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="status-bar" id="status-bar"></div>
+
+    <main>
+        <div class="error-bar" id="error-bar"></div>
+        <div class="grid" id="grid">
+            <div class="skel"></div>
+            <div class="skel"></div>
+            <div class="skel"></div>
+            <div class="skel"></div>
+            <div class="skel"></div>
+            <div class="skel"></div>
+        </div>
+    </main>
+
+    <script>
+        const INTERVAL = 60;       // seconds
+        const API = '/tickets';
+
+        // ── helpers ───────────────────────────────────────────────────────────────
+
+        const esc = s => String(s ?? '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        function statusCls(status = '') {
+            const s = status.toUpperCase();
+            if (s.includes('NOVA')) return 's-nova';
+            if (s.includes('ANDAMENTO')) return 's-andamento';
+            if (s.includes('AGUARDANDO')) return 's-aguardando';
+            if (s.includes('RESOLV') || s.includes('FECHA') || s.includes('CONCLU')) return 's-resolvida';
+            if (s.includes('CANCEL')) return 's-cancelada';
+            return 's-other';
+        }
+
+        const PRIO_MAP = { '3': '🔴 Alta', '2': '🟡 Média', '1': '🟢 Baixa' };
+
+        function waitCls(w = '') {
+            const d = (w.match(/(\d+)d/) || [])[1];
+            if (d >= 7) return 'urgent';
+            if (d >= 3) return 'warning';
+            return '';
+        }
+
+        // ── render helpers ────────────────────────────────────────────────────────
+
+        function card(t) {
+            const sc = statusCls(t.status);
+            const prio = PRIO_MAP[t.priority];
+            const wc = waitCls(t.waitTime);
+
+            return `
+    <div class="card ${sc}">
+      <div class="card-header">
+        <div class="card-id"><em>#</em>${esc(t.id)}</div>
+        <div class="badges">
+          ${prio ? `<span class="badge" style="background:var(--surface2);color:var(--muted)">${prio}</span>` : ''}
+          <span class="badge ${sc}">${esc(t.status || '—')}</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="desc" title="${esc(t.description)}">${esc(t.description) || '<span style="color:var(--muted)"><em>Sem descrição</em></span>'}</div>
+        <div class="meta">
+          <div class="meta-item">
+            <span class="meta-lbl">Solicitante</span>
+            <span class="meta-val" title="${esc(t.requester)}">${esc(t.requester) || '—'}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-lbl">Unidade</span>
+            <span class="meta-val" title="${esc(t.unit)}">${esc(t.unit) || '—'}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-lbl">Área / Serviço</span>
+            <span class="meta-val" title="${esc(t.area)}">${esc(t.area) || '—'}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-lbl">Responsável</span>
+            <span class="meta-val" title="${esc(t.assignee)}">${esc(t.assignee) || 'Não atribuído'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span>📅 ${esc(t.openedAt) || '—'}</span>
+        <span class="wait ${wc}">⏱ ${esc(t.waitTime) || '—'}</span>
+      </div>
+    </div>`;
+        }
+
+        function statsBar(tickets) {
+            const counts = {};
+            for (const t of tickets) {
+                const sc = statusCls(t.status);
+                if (!counts[sc]) counts[sc] = { label: t.status, n: 0, sc };
+                counts[sc].n++;
+            }
+            const names = {
+                's-nova': 'Nova', 's-andamento': 'Em andamento', 's-aguardando': 'Aguardando',
+                's-resolvida': 'Resolvida/Fechada', 's-cancelada': 'Cancelada', 's-other': 'Outros',
+            };
+            return Object.values(counts).map(({ sc, n }) =>
+                `<div class="pill ${sc}"><span class="dot"></span>${names[sc] || sc} <strong>${n}</strong></div>`
+            ).join('');
+        }
+
+        function render(tickets) {
+            document.getElementById('total-count').textContent = tickets.length;
+            document.getElementById('status-bar').innerHTML = statsBar(tickets);
+
+            if (!tickets.length) {
+                document.getElementById('grid').innerHTML = `
+        <div class="empty">
+          <span class="ico">📭</span>
+          <span>Nenhum chamado encontrado</span>
+          <span style="font-size:.85rem">Os dados aparecerão após a primeira sincronização.</span>
+        </div>`;
+                return;
+            }
+
+            document.getElementById('grid').innerHTML = tickets.map(card).join('');
+        }
+
+        // ── fetch ─────────────────────────────────────────────────────────────────
+
+        async function load() {
+            const bar = document.getElementById('error-bar');
+            try {
+                const res = await fetch(API);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                render(await res.json());
+                bar.style.display = 'none';
+                document.getElementById('last-updated').textContent =
+                    new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            } catch (e) {
+                bar.textContent = `⚠️ Falha ao carregar dados: ${e.message}. Exibindo última versão disponível.`;
+                bar.style.display = 'block';
+            }
+        }
+
+        // ── countdown ring ────────────────────────────────────────────────────────
+
+        const C = 2 * Math.PI * 10;  // circumference for r=10
+        let left = INTERVAL;
+
+        function tick() {
+            const circle = document.getElementById('ring-circle');
+            circle.style.strokeDashoffset = C * (1 - left / INTERVAL);
+            document.getElementById('ring-label').textContent = left;
+        }
+
+        function startCountdown() {
+            left = INTERVAL; tick();
+            setInterval(() => {
+                left = left > 0 ? left - 1 : INTERVAL;
+                if (left === INTERVAL) load();
+                tick();
+            }, 1000);
+        }
+
+        // ── boot ──────────────────────────────────────────────────────────────────
+
+        load().then(startCountdown);
+    </script>
+
+</body>
+
+</html>
