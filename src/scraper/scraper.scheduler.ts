@@ -1,34 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
 import { ScraperService } from './scraper.service';
 
+/**
+ * ScraperScheduler is intentionally kept inside ScraperModule without any
+ * reference to TicketsService to avoid circular dependencies.
+ * Scheduled scrapes log results; persistence is handled by TicketsModule's
+ * SyncScheduler which lives alongside TicketsService.
+ */
 @Injectable()
 export class ScraperScheduler {
     private readonly logger = new Logger(ScraperScheduler.name);
 
-    constructor(
-        private readonly scraperService: ScraperService,
-        private readonly configService: ConfigService,
-    ) { }
+    constructor(private readonly scraperService: ScraperService) { }
 
-    /**
-     * Runs on the cron expression defined by SCRAPER_CRON (default: every 6 hours).
-     * The expression is read at startup; to change it at runtime, restart the app.
-     */
-    @Cron(process.env.SCRAPER_CRON ?? '0 */6 * * *', {
-        name: 'ticket-scraper',
-    })
-    async handleCron(): Promise<void> {
-        this.logger.log('Scheduled scrape triggered');
-        const result = await this.scraperService.scrape();
-
-        if (result.success) {
-            this.logger.log(
-                `Scheduled scrape finished — ${result.tickets.length} ticket(s) at ${result.scrapedAt.toISOString()}`,
-            );
-        } else {
-            this.logger.error(`Scheduled scrape failed: ${result.error}`);
-        }
+    /** Exposed so SyncScheduler can reuse the same cron-triggered logic. */
+    async runScrape() {
+        this.logger.log('Scrape triggered');
+        return this.scraperService.scrape();
     }
 }

@@ -160,12 +160,15 @@ export class ScraperService {
 
         const tickets = await this.parseTicketsHtml(page, json.obj.registros);
 
-        // Fetch remaining pages if any
+        // Fetch remaining pages via direct API calls (reuses same session cookies)
         const { qtdPaginasTotal } = json.obj.propriedades;
+        const firstPageUrl = response.url();
+
         if (qtdPaginasTotal > 1) {
             for (let pagina = 2; pagina <= qtdPaginasTotal; pagina++) {
-                const pageResponse = await this.fetchPage(page, pagina);
-                const pageTickets = await this.parseTicketsHtml(page, pageResponse.obj.registros);
+                this.logger.debug(`Fetching page ${pagina}/${qtdPaginasTotal}`);
+                const pageJson = await this.fetchPageDirect(page, firstPageUrl, pagina);
+                const pageTickets = await this.parseTicketsHtml(page, pageJson.obj.registros);
                 tickets.push(...pageTickets);
             }
         }
@@ -173,14 +176,28 @@ export class ScraperService {
         return tickets;
     }
 
-    private async fetchPage(page: Page, pagina: number): Promise<VirtualIfApiResponse> {
-        this.logger.debug(`Fetching page ${pagina}`);
-        const responsePromise = page.waitForResponse(
-            (res) => res.url().includes(TICKETS_API_PATH),
-        );
-        await page.click(`a[data-pagina="${pagina}"], a:has-text("${pagina}")`);
-        const response = await responsePromise;
-        return response.json() as Promise<VirtualIfApiResponse>;
+    /**
+     * Fetches an additional page of tickets by replaying the API URL with a different
+     * paginaAtual value, reusing the browser session (cookies) via page.evaluate→fetch.
+     */
+    private async fetchPageDirect(
+        page: Page,
+        firstPageUrl: string,
+        pagina: number,
+    ): Promise<VirtualIfApiResponse> {
+        const url = new URL(firstPageUrl);
+        url.searchParams.set('paginaAtual', String(pagina));
+        const targetUrl = url.toString();
+
+        const json = await page.evaluate(async (href: string) => {
+            const res = await fetch(href, { credentials: 'include' });
+            return res.json();
+        }, targetUrl) as VirtualIfApiResponse;
+
+        if (json.status !== 'ok' || !json.obj?.registros) {
+            throw new Error(`Unexpected API response on page ${pagina}: ${JSON.stringify(json).slice(0, 200)}`);
+        }
+        return json;
     }
 
     /**
