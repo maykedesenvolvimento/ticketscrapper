@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ScraperModule } from './scraper/scraper.module';
 import configuration from './config/configuration';
 
@@ -16,7 +14,5 @@ import configuration from './config/configuration';
     ScheduleModule.forRoot(),
     ScraperModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

@@ -3,7 +3,7 @@ import { ScraperService } from './scraper.service';
 import { ScraperScheduler } from './scraper.scheduler';
 
 @Module({
-  providers: [ScraperService, ScraperScheduler],
-  exports: [ScraperService],
+    providers: [ScraperService, ScraperScheduler],
+    exports: [ScraperService],
 })
-export class ScraperModule {}
+export class ScraperModule { }
