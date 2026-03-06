@@ -309,10 +309,6 @@
         .desc {
             font-size: .93rem;
             line-height: 1.55;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .meta {
@@ -542,7 +538,7 @@
       </div>
 
       <div class="card-body">
-        <div class="desc" title="${esc(t.description)}">${esc(t.description) || '<span style="color:var(--muted)"><em>Sem descrição</em></span>'}</div>
+        <div class="desc">${esc(t.description) || '<span style="color:var(--muted)"><em>Sem descrição</em></span>'}</div>
         <div class="meta">
           <div class="meta-item">
             <span class="meta-lbl">Solicitante</span>
