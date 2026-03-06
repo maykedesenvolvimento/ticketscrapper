@@ -86,7 +86,7 @@ describe('ScraperService — full flow', () => {
             expect(first).not.toBeNull();
             expect(first.id).toBeTruthy();
             expect(first.status).toBeTruthy();
-            expect(first.solicitante).toBeTruthy();
+            expect(first.requester).toBeTruthy();
 
             console.log('\nFirst ticket:', JSON.stringify(first, null, 2));
         },

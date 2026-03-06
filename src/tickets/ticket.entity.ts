@@ -13,40 +13,40 @@ export class Ticket {
     id!: string;
 
     @Column({ type: 'text', nullable: true })
-    dtGeracao!: string;
+    openedAt!: string;
 
     @Column({ type: 'text', nullable: true })
     area!: string;
 
     @Column({ type: 'text', nullable: true })
-    servico!: string;
+    service!: string;
 
     @Column({ type: 'text', nullable: true })
-    equipe!: string;
+    team!: string;
 
     @Column({ type: 'text', nullable: true })
-    descricao!: string;
+    description!: string;
 
     @Column({ type: 'text', nullable: true })
-    solicitante!: string;
+    requester!: string;
 
     @Column({ type: 'text', nullable: true })
-    unidade!: string;
+    unit!: string;
 
     @Column({ type: 'text', nullable: true })
     status!: string;
 
     @Column({ type: 'text', nullable: true })
-    responsavel!: string;
+    assignee!: string;
 
     @Column({ type: 'text', nullable: true })
-    dtAtendimento!: string;
+    attendedAt!: string;
 
     @Column({ type: 'text', nullable: true })
-    prioridade!: string;
+    priority!: string;
 
     @Column({ type: 'text', nullable: true })
-    tempoEspera!: string;
+    waitTime!: string;
 
     @CreateDateColumn()
     createdAt!: Date;

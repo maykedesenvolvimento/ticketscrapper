@@ -4,18 +4,18 @@ import { chromium, Browser, Page } from 'playwright';
 
 export interface RawTicket {
     id: string;
-    dtGeracao: string;
+    openedAt: string;
     area: string;
-    servico: string;
-    equipe: string;
-    descricao: string;
-    solicitante: string;
-    unidade: string;
+    service: string;
+    team: string;
+    description: string;
+    requester: string;
+    unit: string;
     status: string;
-    responsavel: string;
-    dtAtendimento: string;
-    prioridade: string;
-    tempoEspera: string;
+    assignee: string;
+    attendedAt: string;
+    priority: string;
+    waitTime: string;
 }
 
 export interface ScrapeResult {
@@ -222,7 +222,7 @@ export class ScraperService {
                 const id = btn?.getAttribute('data-solicitacao_id') ?? text(cells[0]);
 
                 // cell[2] has title attr = full description
-                const descricao = cells[2]?.getAttribute('title') ?? '';
+                const description = cells[2]?.getAttribute('title') ?? '';
                 const areaLines = text(cells[2]).split(/\s{2,}/);
 
                 // Status is inside span.label
@@ -230,18 +230,18 @@ export class ScraperService {
 
                 return {
                     id,
-                    dtGeracao: text(cells[1]),
+                    openedAt: text(cells[1]),
                     area: areaLines[0] ?? '',
-                    servico: areaLines[1] ?? '',
-                    equipe: areaLines[2] ?? '',
-                    descricao,
-                    solicitante: text(cells[3]?.querySelector('[style*="font-weight: bolder"]') ?? cells[3]),
-                    unidade: text(cells[3]?.querySelectorAll('div')[1] ?? null),
+                    service: areaLines[1] ?? '',
+                    team: areaLines[2] ?? '',
+                    description,
+                    requester: text(cells[3]?.querySelector('[style*="font-weight: bolder"]') ?? cells[3]),
+                    unit: text(cells[3]?.querySelectorAll('div')[1] ?? null),
                     status: text(statusEl ?? cells[4]),
-                    responsavel: text(cells[5]),
-                    dtAtendimento: text(cells[6]),
-                    prioridade: text(cells[7]).split(/\s+/)[0] ?? '',
-                    tempoEspera: text(cells[7]).replace(/^\S+\s*/, '').trim(),
+                    assignee: text(cells[5]),
+                    attendedAt: text(cells[6]),
+                    priority: text(cells[7]).split(/\s+/)[0] ?? '',
+                    waitTime: text(cells[7]).replace(/^\S+\s*/, '').trim(),
                 };
             });
 
