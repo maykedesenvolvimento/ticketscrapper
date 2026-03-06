@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
-import { ScraperService, ScrapeResult } from './scraper.service';
+import { ScraperService, ScrapeResult, RawTicket } from './scraper.service';
 import configuration from '../config/configuration';
-import * as path from 'path';
 
 /**
  * Flow test for ScraperService.
@@ -23,7 +22,7 @@ describe('ScraperService — full flow', () => {
                 ConfigModule.forRoot({
                     isGlobal: true,
                     load: [configuration],
-                    envFilePath: path.resolve(process.cwd(), '.env'),
+                    envFilePath: '.env',
                 }),
             ],
             providers: [ScraperService],
@@ -41,10 +40,9 @@ describe('ScraperService — full flow', () => {
         ];
 
         for (const varName of requiredVars) {
-            expect(
-                process.env[varName],
-                `Missing env variable: ${varName}`,
-            ).toBeDefined();
+            if (!process.env[varName]) {
+                throw new Error(`Missing env variable: ${varName}`);
+            }
             expect(process.env[varName]).not.toBe('');
         }
     });
@@ -84,12 +82,13 @@ describe('ScraperService — full flow', () => {
                 return;
             }
 
-            const first = result.tickets[0];
-            expect(typeof first).toBe('object');
+            const first: RawTicket = result.tickets[0];
             expect(first).not.toBeNull();
+            expect(first.id).toBeTruthy();
+            expect(first.status).toBeTruthy();
+            expect(first.solicitante).toBeTruthy();
 
-            // Log all keys found so we can update the Ticket entity accordingly
-            console.log('\nTicket keys found:', Object.keys(first));
+            console.log('\nFirst ticket:', JSON.stringify(first, null, 2));
         },
         60_000,
     );

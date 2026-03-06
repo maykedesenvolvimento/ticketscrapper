@@ -1,9 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { chromium, Browser, BrowserContext, Page, Response } from 'playwright';
+import { chromium, Browser, Page } from 'playwright';
 
 export interface RawTicket {
-    [key: string]: unknown;
+    id: string;
+    dtGeracao: string;
+    area: string;
+    servico: string;
+    equipe: string;
+    descricao: string;
+    solicitante: string;
+    unidade: string;
+    status: string;
+    responsavel: string;
+    dtAtendimento: string;
+    prioridade: string;
+    tempoEspera: string;
 }
 
 export interface ScrapeResult {
@@ -11,6 +23,21 @@ export interface ScrapeResult {
     tickets: RawTicket[];
     scrapedAt: Date;
     error?: string;
+}
+
+const TICKETS_API_PATH = 'consultarGssSolicitacaoGerenciamento2.php';
+
+interface VirtualIfApiResponse {
+    status: string;
+    obj: {
+        propriedades: {
+            paginaAtual: number;
+            qtdRegistrosPorPagina: string;
+            qtdRegistrosTotal: number;
+            qtdPaginasTotal: number;
+        };
+        registros: string;
+    };
 }
 
 @Injectable()
@@ -24,24 +51,22 @@ export class ScraperService {
         let browser: Browser | null = null;
 
         try {
-            browser = await this.launchBrowser();
+            browser = await chromium.launch({ headless: true });
             const context = await browser.newContext();
             const page = await context.newPage();
 
             await this.login(page);
-            const tickets = await this.fetchTickets(page);
+            const gssPage = await this.openGssModule(page);
+            const tickets = await this.fetchTickets(gssPage);
 
             this.logger.log(`Scrape completed — ${tickets.length} ticket(s) found`);
-
             return { success: true, tickets, scrapedAt };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             this.logger.error(`Scrape failed: ${message}`);
             return { success: false, tickets: [], scrapedAt, error: message };
         } finally {
-            if (browser) {
-                await browser.close();
-            }
+            if (browser) await browser.close();
         }
     }
 
@@ -49,126 +74,162 @@ export class ScraperService {
     // Private helpers
     // ---------------------------------------------------------------------------
 
-    private async launchBrowser(): Promise<Browser> {
-        this.logger.debug('Launching Chromium (headless)');
-        return chromium.launch({ headless: true });
-    }
-
     private async login(page: Page): Promise<void> {
         const loginUrl = this.configService.get<string>('virtualif.loginUrl');
         const username = this.configService.get<string>('virtualif.username');
         const password = this.configService.get<string>('virtualif.password');
 
         if (!loginUrl || !username || !password) {
-            throw new Error(
-                'Missing VirtualIF credentials in environment variables.',
-            );
+            throw new Error('Missing VirtualIF credentials in environment variables.');
         }
 
         this.logger.debug(`Navigating to login page: ${loginUrl}`);
         await page.goto(loginUrl, { waitUntil: 'networkidle' });
-
-        // TODO: update selectors to match VirtualIF's actual login form
-        await page.fill('input[name="username"]', username);
-        await page.fill('input[name="password"]', password);
-        await page.click('button[type="submit"]');
-
-        await page.waitForNavigation({ waitUntil: 'networkidle' });
+        await page.fill('#usuario', username);
+        await page.fill('#senha', password);
+        await page.click('#btnEntrar');
+        await page.waitForLoadState('networkidle');
         this.logger.debug('Login successful');
     }
 
+    /**
+     * Clicks the GSS module icon on the dashboard, which opens in a new tab.
+     * Returns the new Page for the GSS module.
+     */
+    private async openGssModule(page: Page): Promise<Page> {
+        this.logger.debug('Opening GSS module (new tab)');
+
+        const [gssPage] = await Promise.all([
+            page.context().waitForEvent('page'),
+            page.click('a[href*="modulo=GSS"]'),
+        ]);
+
+        await gssPage.waitForLoadState('networkidle');
+        this.logger.debug(`GSS module opened: ${gssPage.url()}`);
+        return gssPage;
+    }
+
+    /**
+     * In the GSS module:
+     *  1. Navigate directly to the Gerenciamento view via ticketsUrl (ERR_ABORTED is normal for SPAs)
+     *  2. Wait for the SPA to fully render and attach onClick handlers
+     *  3. Click "Pesquisar" to trigger the tickets API call
+     *  4. Capture and parse all pages of results
+     */
     private async fetchTickets(page: Page): Promise<RawTicket[]> {
         const ticketsUrl = this.configService.get<string>('virtualif.ticketsUrl');
+        if (!ticketsUrl) throw new Error('VIRTUALIF_TICKETS_URL is not configured');
 
-        if (!ticketsUrl) {
-            throw new Error('Missing VIRTUALIF_TICKETS_URL in environment variables.');
+        // Step 1 — Navigate to the Gerenciamento view
+        // SPA hash-routing frequently aborts the navigation prematurely — that's fine.
+        this.logger.debug(`Navigating to tickets URL: ${ticketsUrl}`);
+        try {
+            await page.goto(ticketsUrl, { waitUntil: 'load', timeout: 15_000 });
+        } catch {
+            this.logger.debug('goto aborted (normal for SPA) — continuing');
         }
 
-        return new Promise(async (resolve, reject) => {
-            const collected: RawTicket[] = [];
-            let resolved = false;
+        // Step 2 — Give the SPA JS time to fully render the form and wire up handlers
+        await page.waitForTimeout(3_000);
+        await page.waitForSelector('button.btBuscar', { timeout: 20_000 });
+        this.logger.debug('Gerenciamento form ready, button.btBuscar visible');
 
-            // Intercept network responses that likely carry the tickets payload
-            page.on('response', async (response: Response) => {
-                try {
-                    if (!this.isTicketsResponse(response, ticketsUrl)) return;
+        // Step 3 — Register listener THEN fire the click
+        const responsePromise = page.waitForResponse(
+            (res) => res.url().includes(TICKETS_API_PATH),
+            { timeout: 30_000 },
+        );
 
-                    const contentType = response.headers()['content-type'] ?? '';
-                    if (!contentType.includes('application/json')) return;
+        this.logger.debug('Clicking Pesquisar (button.btBuscar)');
+        await page.evaluate(() => {
+            const btn = document.querySelector('button.btBuscar') as HTMLElement | null;
+            if (!btn) throw new Error('button.btBuscar not found');
+            btn.click();
+        });
 
-                    const body = await response.json();
-                    const tickets = this.extractTicketsFromPayload(body);
-                    collected.push(...tickets);
+        const response = await responsePromise;
+        const json = await response.json() as VirtualIfApiResponse;
 
-                    this.logger.debug(
-                        `Intercepted response from ${response.url()} — ${tickets.length} ticket(s)`,
-                    );
-                } catch (err) {
-                    this.logger.warn(`Could not parse response: ${String(err)}`);
-                }
+        if (json.status !== 'ok' || !json.obj?.registros) {
+            throw new Error(`Unexpected API response: ${JSON.stringify(json).slice(0, 200)}`);
+        }
+
+        this.logger.debug(
+            `API returned ${json.obj.propriedades.qtdRegistrosTotal} ticket(s) across ${json.obj.propriedades.qtdPaginasTotal} page(s)`,
+        );
+
+        const tickets = await this.parseTicketsHtml(page, json.obj.registros);
+
+        // Fetch remaining pages if any
+        const { qtdPaginasTotal } = json.obj.propriedades;
+        if (qtdPaginasTotal > 1) {
+            for (let pagina = 2; pagina <= qtdPaginasTotal; pagina++) {
+                const pageResponse = await this.fetchPage(page, pagina);
+                const pageTickets = await this.parseTicketsHtml(page, pageResponse.obj.registros);
+                tickets.push(...pageTickets);
+            }
+        }
+
+        return tickets;
+    }
+
+    private async fetchPage(page: Page, pagina: number): Promise<VirtualIfApiResponse> {
+        this.logger.debug(`Fetching page ${pagina}`);
+        const responsePromise = page.waitForResponse(
+            (res) => res.url().includes(TICKETS_API_PATH),
+        );
+        await page.click(`a[data-pagina="${pagina}"], a:has-text("${pagina}")`);
+        const response = await responsePromise;
+        return response.json() as Promise<VirtualIfApiResponse>;
+    }
+
+    /**
+     * Injects the HTML fragment into a hidden div in the current page,
+     * then uses page.evaluate to extract structured rows from the table.
+     */
+    private async parseTicketsHtml(page: Page, html: string): Promise<RawTicket[]> {
+        return page.evaluate((registrosHtml: string): RawTicket[] => {
+            const container = document.createElement('div');
+            container.style.display = 'none';
+            container.innerHTML = registrosHtml;
+            document.body.appendChild(container);
+
+            const rows = Array.from(container.querySelectorAll('tbody tr'));
+
+            const tickets: RawTicket[] = rows.map((row) => {
+                const cells = Array.from(row.querySelectorAll('td'));
+                const text = (el: Element | null) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+                // Ticket ID is also stored in the button's data attribute — fallback to cell text
+                const btn = row.querySelector('button[data-solicitacao_id]');
+                const id = btn?.getAttribute('data-solicitacao_id') ?? text(cells[0]);
+
+                // cell[2] has title attr = full description
+                const descricao = cells[2]?.getAttribute('title') ?? '';
+                const areaLines = text(cells[2]).split(/\s{2,}/);
+
+                // Status is inside span.label
+                const statusEl = cells[4]?.querySelector('span.label');
+
+                return {
+                    id,
+                    dtGeracao: text(cells[1]),
+                    area: areaLines[0] ?? '',
+                    servico: areaLines[1] ?? '',
+                    equipe: areaLines[2] ?? '',
+                    descricao,
+                    solicitante: text(cells[3]?.querySelector('[style*="font-weight: bolder"]') ?? cells[3]),
+                    unidade: text(cells[3]?.querySelectorAll('div')[1] ?? null),
+                    status: text(statusEl ?? cells[4]),
+                    responsavel: text(cells[5]),
+                    dtAtendimento: text(cells[6]),
+                    prioridade: text(cells[7]).split(/\s+/)[0] ?? '',
+                    tempoEspera: text(cells[7]).replace(/^\S+\s*/, '').trim(),
+                };
             });
 
-            try {
-                this.logger.debug(`Navigating to tickets page: ${ticketsUrl}`);
-                await page.goto(ticketsUrl, { waitUntil: 'networkidle' });
-
-                // Give extra time for any deferred XHR/fetch calls to settle
-                await page.waitForTimeout(2000);
-
-                resolved = true;
-                resolve(collected);
-            } catch (err) {
-                if (!resolved) reject(err);
-            }
-        });
-    }
-
-    /**
-     * Returns true when the response URL is related to the tickets endpoint.
-     * Adjust the matching logic once the exact API URL is known.
-     */
-    private isTicketsResponse(response: Response, ticketsUrl: string): boolean {
-        const responseUrl = response.url();
-        return (
-            responseUrl.includes(ticketsUrl) ||
-            responseUrl.includes('/tickets') ||
-            responseUrl.includes('/chamados') ||
-            responseUrl.includes('/suporte')
-        );
-    }
-
-    /**
-     * Normalises the raw JSON payload into an array of ticket objects.
-     * Adjust the extraction logic to match VirtualIF's actual response shape.
-     *
-     * Common patterns:
-     *   { data: [...] }
-     *   { tickets: [...] }
-     *   { result: { items: [...] } }
-     *   [...]  (bare array)
-     */
-    private extractTicketsFromPayload(body: unknown): RawTicket[] {
-        if (Array.isArray(body)) return body as RawTicket[];
-
-        if (typeof body === 'object' && body !== null) {
-            const obj = body as Record<string, unknown>;
-            if (Array.isArray(obj['data'])) return obj['data'] as RawTicket[];
-            if (Array.isArray(obj['tickets'])) return obj['tickets'] as RawTicket[];
-            if (Array.isArray(obj['chamados'])) return obj['chamados'] as RawTicket[];
-            if (
-                typeof obj['result'] === 'object' &&
-                obj['result'] !== null &&
-                Array.isArray((obj['result'] as Record<string, unknown>)['items'])
-            ) {
-                return (obj['result'] as Record<string, unknown>)[
-                    'items'
-                ] as RawTicket[];
-            }
-        }
-
-        this.logger.warn(
-            'Could not extract tickets array from response — returning raw body as single item',
-        );
-        return [body as RawTicket];
+            document.body.removeChild(container);
+            return tickets;
+        }, html);
     }
 }
