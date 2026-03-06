@@ -462,7 +462,7 @@
         <div class="hd-right">
             <div class="stat">
                 <strong id="total-count">—</strong>
-                <span>chamados</span>
+                <span>abertos</span>
             </div>
             <div class="stat">
                 <strong id="last-updated">—</strong>
@@ -582,21 +582,30 @@
             ).join('');
         }
 
+        function isActive(status = '') {
+            const s = status.toUpperCase();
+            return s.includes('NOVA') || s.includes('ATENDIMENTO') || s.includes('ANDAMENTO');
+        }
+
         function render(tickets) {
-            document.getElementById('total-count').textContent = tickets.length;
+            // Status bar shows totals for ALL tickets from the API
             document.getElementById('status-bar').innerHTML = statsBar(tickets);
 
-            if (!tickets.length) {
+            // Grid only shows active tickets (Nova + Em Atendimento)
+            const active = tickets.filter(t => isActive(t.status));
+            document.getElementById('total-count').textContent = active.length;
+
+            if (!active.length) {
                 document.getElementById('grid').innerHTML = `
         <div class="empty">
-          <span class="ico">📭</span>
-          <span>Nenhum chamado encontrado</span>
-          <span style="font-size:.85rem">Os dados aparecerão após a primeira sincronização.</span>
+          <span class="ico">✅</span>
+          <span>Nenhum chamado aberto</span>
+          <span style="font-size:.85rem">Todos os chamados estão resolvidos ou não há registros ainda.</span>
         </div>`;
                 return;
             }
 
-            document.getElementById('grid').innerHTML = tickets.map(card).join('');
+            document.getElementById('grid').innerHTML = active.map(card).join('');
         }
 
         // ── fetch ─────────────────────────────────────────────────────────────────
