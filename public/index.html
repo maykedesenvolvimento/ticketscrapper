@@ -6,31 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel de Chamados — TI</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:           #0b0d14;
-            --surface:      #13162a;
-            --surface2:     #1b1f36;
-            --border:       #252a45;
-            --text:         #e2e8f0;
-            --muted:        #7c87a8;
-            --nova:         #3b82f6;
-            --nova-bg:      rgba(59,130,246,.13);
-            --andamento:    #f59e0b;
-            --andamento-bg: rgba(245,158,11,.13);
-            --aguardando:   #f97316;
-            --aguardando-bg:rgba(249,115,22,.13);
-            --resolvida:    #22c55e;
-            --resolvida-bg: rgba(34,197,94,.13);
-            --cancelada:    #6b7280;
-            --cancelada-bg: rgba(107,114,128,.13);
-            --other:        #8b5cf6;
-            --other-bg:     rgba(139,92,246,.13);
-            --accent:       #6366f1;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        html, body {
+        :root {
+            --bg: #0b0d14;
+            --surface: #13162a;
+            --surface2: #1b1f36;
+            --border: #252a45;
+            --text: #e2e8f0;
+            --muted: #7c87a8;
+            --nova: #3b82f6;
+            --nova-bg: rgba(59, 130, 246, .13);
+            --andamento: #f59e0b;
+            --andamento-bg: rgba(245, 158, 11, .13);
+            --aguardando: #f97316;
+            --aguardando-bg: rgba(249, 115, 22, .13);
+            --resolvida: #22c55e;
+            --resolvida-bg: rgba(34, 197, 94, .13);
+            --cancelada: #6b7280;
+            --cancelada-bg: rgba(107, 114, 128, .13);
+            --other: #8b5cf6;
+            --other-bg: rgba(139, 92, 246, .13);
+            --accent: #6366f1;
+        }
+
+        html,
+        body {
             height: 100%;
             background: var(--bg);
             color: var(--text);
@@ -50,55 +57,125 @@
             gap: 1rem;
         }
 
-        .hd-left { display: flex; align-items: center; gap: 1rem; }
-
-        .hd-icon {
-            width: 2.8rem; height: 2.8rem;
-            background: var(--accent);
-            border-radius: .6rem;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; flex-shrink: 0;
+        .hd-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .hd-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
-        .hd-title span { color: var(--accent); }
-        .hd-sub { font-size: .85rem; color: var(--muted); margin-top: .1rem; }
+        .hd-icon {
+            width: 2.8rem;
+            height: 2.8rem;
+            background: var(--accent);
+            border-radius: .6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
 
-        .hd-right { display: flex; align-items: center; gap: 2.5rem; }
+        .hd-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
 
-        .stat { text-align: right; line-height: 1.2; }
-        .stat strong { display: block; font-size: 1.6rem; font-weight: 800; }
-        .stat span   { font-size: .82rem; color: var(--muted); }
+        .hd-title span {
+            color: var(--accent);
+        }
+
+        .hd-sub {
+            font-size: .85rem;
+            color: var(--muted);
+            margin-top: .1rem;
+        }
+
+        .hd-right {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        .stat {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .stat span {
+            font-size: .82rem;
+            color: var(--muted);
+        }
 
         /* countdown ring */
-        .ring { position: relative; width: 50px; height: 50px; }
-        .ring svg { transform: rotate(-90deg); }
-        .ring .track    { fill: none; stroke: var(--border); stroke-width: 3; }
-        .ring .progress { fill: none; stroke: var(--accent); stroke-width: 3;
-            stroke-linecap: round; stroke-dasharray: 63;
-            transition: stroke-dashoffset .9s linear; }
+        .ring {
+            position: relative;
+            width: 50px;
+            height: 50px;
+        }
+
+        .ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring .track {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 3;
+        }
+
+        .ring .progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 63;
+            transition: stroke-dashoffset .9s linear;
+        }
+
         .ring .lbl {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: .78rem; font-weight: 700;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .78rem;
+            font-weight: 700;
         }
 
         /* ── Status bar ── */
         .status-bar {
-            display: flex; gap: .6rem; flex-wrap: wrap;
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
             padding: .5rem 2rem;
             background: var(--surface2);
             border-bottom: 1px solid var(--border);
         }
 
         .pill {
-            display: flex; align-items: center; gap: .4rem;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
             padding: .25rem .8rem;
             border-radius: 2rem;
-            font-size: .82rem; font-weight: 700;
+            font-size: .82rem;
+            font-weight: 700;
             border: 1px solid transparent;
         }
-        .pill .dot { width: .45rem; height: .45rem; border-radius: 50%; background: currentColor; }
+
+        .pill .dot {
+            width: .45rem;
+            height: .45rem;
+            border-radius: 50%;
+            background: currentColor;
+        }
 
         /* ── Two-column board ── */
         .board {
@@ -114,22 +191,40 @@
             overflow: hidden;
             border-right: 2px solid var(--border);
         }
-        .column:last-child { border-right: none; }
+
+        .column:last-child {
+            border-right: none;
+        }
 
         .col-header {
-            display: flex; align-items: center; gap: .75rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
             padding: .8rem 1.4rem;
-            font-size: 1.15rem; font-weight: 800;
-            text-transform: uppercase; letter-spacing: .08em;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
             border-bottom: 3px solid transparent;
             flex-shrink: 0;
         }
-        .col-header.nova       { border-color: var(--nova);      color: var(--nova);      background: var(--nova-bg); }
-        .col-header.andamento  { border-color: var(--andamento); color: var(--andamento); background: var(--andamento-bg); }
+
+        .col-header.nova {
+            border-color: var(--nova);
+            color: var(--nova);
+            background: var(--nova-bg);
+        }
+
+        .col-header.andamento {
+            border-color: var(--andamento);
+            color: var(--andamento);
+            background: var(--andamento-bg);
+        }
 
         .col-count {
             margin-left: auto;
-            font-size: .82rem; font-weight: 700;
+            font-size: .82rem;
+            font-weight: 700;
             padding: .2rem .65rem;
             border-radius: 2rem;
             border: 1px solid currentColor;
@@ -157,32 +252,71 @@
             transition: transform .15s, box-shadow .15s;
             flex-shrink: 0;
         }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.45); }
 
-        .card.s-nova      { border-left-color: var(--nova); }
-        .card.s-andamento { border-left-color: var(--andamento); }
-        .card.s-aguardando{ border-left-color: var(--aguardando); }
-        .card.s-resolvida { border-left-color: var(--resolvida); }
-        .card.s-cancelada { border-left-color: var(--cancelada); }
-        .card.s-other     { border-left-color: var(--other); }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+        }
+
+        .card.s-nova {
+            border-left-color: var(--nova);
+        }
+
+        .card.s-andamento {
+            border-left-color: var(--andamento);
+        }
+
+        .card.s-aguardando {
+            border-left-color: var(--aguardando);
+        }
+
+        .card.s-resolvida {
+            border-left-color: var(--resolvida);
+        }
+
+        .card.s-cancelada {
+            border-left-color: var(--cancelada);
+        }
+
+        .card.s-other {
+            border-left-color: var(--other);
+        }
 
         .card-header {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: .65rem 1.1rem .5rem;
             border-bottom: 1px solid var(--border);
             gap: .5rem;
         }
 
-        .card-id { font-size: 1.1rem; font-weight: 800; color: var(--muted); letter-spacing: .04em; }
-        .card-id em { color: var(--accent); font-style: normal; }
+        .card-id {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--muted);
+            letter-spacing: .04em;
+        }
 
-        .badges { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
+        .card-id em {
+            color: var(--accent);
+            font-style: normal;
+        }
+
+        .badges {
+            display: flex;
+            gap: .4rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
 
         .badge {
-            font-size: .75rem; font-weight: 700;
+            font-size: .75rem;
+            font-weight: 700;
             padding: .2rem .6rem;
             border-radius: .35rem;
-            text-transform: uppercase; letter-spacing: .04em;
+            text-transform: uppercase;
+            letter-spacing: .04em;
             border: 1px solid transparent;
         }
 
@@ -201,15 +335,22 @@
         }
 
         .meta {
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             gap: .45rem;
         }
 
-        .meta-item { display: flex; flex-direction: column; gap: .05rem; }
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: .05rem;
+        }
 
         .meta-lbl {
-            font-size: .7rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: .08em;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
             color: var(--muted);
         }
 
@@ -220,151 +361,232 @@
         }
 
         .card-footer {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: .5rem 1.1rem;
             background: var(--surface2);
-            font-size: .85rem; color: var(--muted);
+            font-size: .85rem;
+            color: var(--muted);
             gap: .5rem;
         }
 
-        .wait { font-weight: 800; color: var(--text); font-size: .88rem; }
-        .wait.urgent  { color: #f87171; }
-        .wait.warning { color: #fbbf24; }
+        .wait {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .88rem;
+        }
+
+        .wait.urgent {
+            color: #f87171;
+        }
+
+        .wait.warning {
+            color: #fbbf24;
+        }
 
         /* empty column */
         .col-empty {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            flex: 1; gap: .8rem;
-            color: var(--muted); font-size: 1.1rem; text-align: center;
-            opacity: .5; padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            gap: .8rem;
+            color: var(--muted);
+            font-size: 1.1rem;
+            text-align: center;
+            opacity: .5;
+            padding: 2rem;
         }
-        .col-empty .ico { font-size: 3.5rem; }
+
+        .col-empty .ico {
+            font-size: 3.5rem;
+        }
 
         /* skeleton */
         .skel {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: .7rem; height: 190px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .7rem;
+            height: 190px;
             animation: pulse 1.5s ease-in-out infinite;
         }
-        @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: .3
+            }
+
+            50% {
+                opacity: .7
+            }
+        }
 
         .error-bar {
-            background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
-            color: #f87171; padding: .5rem 2rem; font-size: .88rem; display: none;
+            background: rgba(239, 68, 68, .1);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #f87171;
+            padding: .5rem 2rem;
+            font-size: .88rem;
+            display: none;
         }
 
         /* status colour classes */
-        .s-nova       { color:var(--nova);      background:var(--nova-bg);      border-color:var(--nova); }
-        .s-andamento  { color:var(--andamento); background:var(--andamento-bg); border-color:var(--andamento); }
-        .s-aguardando { color:var(--aguardando);background:var(--aguardando-bg);border-color:var(--aguardando); }
-        .s-resolvida  { color:var(--resolvida); background:var(--resolvida-bg); border-color:var(--resolvida); }
-        .s-cancelada  { color:var(--cancelada); background:var(--cancelada-bg); border-color:var(--cancelada); }
-        .s-other      { color:var(--other);     background:var(--other-bg);     border-color:var(--other); }
+        .s-nova {
+            color: var(--nova);
+            background: var(--nova-bg);
+            border-color: var(--nova);
+        }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .s-andamento {
+            color: var(--andamento);
+            background: var(--andamento-bg);
+            border-color: var(--andamento);
+        }
+
+        .s-aguardando {
+            color: var(--aguardando);
+            background: var(--aguardando-bg);
+            border-color: var(--aguardando);
+        }
+
+        .s-resolvida {
+            color: var(--resolvida);
+            background: var(--resolvida-bg);
+            border-color: var(--resolvida);
+        }
+
+        .s-cancelada {
+            color: var(--cancelada);
+            background: var(--cancelada-bg);
+            border-color: var(--cancelada);
+        }
+
+        .s-other {
+            color: var(--other);
+            background: var(--other-bg);
+            border-color: var(--other);
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
     </style>
 </head>
 
 <body>
 
-<header id="hd">
-  <div class="hd-left">
-    <div class="hd-icon">🎫</div>
-    <div>
-      <div class="hd-title">Painel de <span>Chamados</span></div>
-      <div class="hd-sub">Setor de Tecnologia da Informação</div>
+    <header id="hd">
+        <div class="hd-left">
+            <div class="hd-icon">🎫</div>
+            <div>
+                <div class="hd-title">Painel de <span>Chamados</span></div>
+                <div class="hd-sub">Setor de Tecnologia da Informação</div>
+            </div>
+        </div>
+        <div class="hd-right">
+            <div class="stat">
+                <strong id="total-count">—</strong>
+                <span>abertos</span>
+            </div>
+            <div class="stat">
+                <strong id="last-updated">—</strong>
+                <span>última atualização</span>
+            </div>
+            <div class="ring" title="Próxima atualização">
+                <svg viewBox="0 0 24 24" width="50" height="50">
+                    <circle class="track" cx="12" cy="12" r="10" />
+                    <circle class="progress" cx="12" cy="12" r="10" id="ring-circle" />
+                </svg>
+                <div class="lbl" id="ring-label">60</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="status-bar" id="status-bar"></div>
+    <div class="error-bar" id="error-bar"></div>
+
+    <div class="board" id="board">
+        <!-- coluna esquerda: NOVA -->
+        <div class="column">
+            <div class="col-header nova">
+                🔵 Nova
+                <span class="col-count" id="count-nova">0</span>
+            </div>
+            <div class="col-body" id="body-nova">
+                <div class="skel"></div>
+                <div class="skel"></div>
+                <div class="skel"></div>
+            </div>
+        </div>
+
+        <!-- coluna direita: EM ATENDIMENTO -->
+        <div class="column">
+            <div class="col-header andamento">
+                🟡 Em Atendimento
+                <span class="col-count" id="count-andamento">0</span>
+            </div>
+            <div class="col-body" id="body-andamento">
+                <div class="skel"></div>
+                <div class="skel"></div>
+                <div class="skel"></div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="hd-right">
-    <div class="stat">
-      <strong id="total-count">—</strong>
-      <span>abertos</span>
-    </div>
-    <div class="stat">
-      <strong id="last-updated">—</strong>
-      <span>última atualização</span>
-    </div>
-    <div class="ring" title="Próxima atualização">
-      <svg viewBox="0 0 24 24" width="50" height="50">
-        <circle class="track"    cx="12" cy="12" r="10"/>
-        <circle class="progress" cx="12" cy="12" r="10" id="ring-circle"/>
-      </svg>
-      <div class="lbl" id="ring-label">60</div>
-    </div>
-  </div>
-</header>
 
-<div class="status-bar" id="status-bar"></div>
-<div class="error-bar"  id="error-bar"></div>
+    <script>
+        /* ── Fix board height after DOM is ready ── */
+        function fixBoardHeight() {
+            const hd = document.getElementById('hd').offsetHeight;
+            const sb = document.getElementById('status-bar').offsetHeight;
+            const eb = document.getElementById('error-bar').offsetHeight;
+            document.getElementById('board').style.height =
+                `calc(100vh - ${hd + sb + eb}px)`;
+        }
 
-<div class="board" id="board">
-  <!-- coluna esquerda: NOVA -->
-  <div class="column">
-    <div class="col-header nova">
-      🔵 Nova
-      <span class="col-count" id="count-nova">0</span>
-    </div>
-    <div class="col-body" id="body-nova">
-      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-    </div>
-  </div>
+        const INTERVAL = 60;
+        const API = '/tickets';
 
-  <!-- coluna direita: EM ATENDIMENTO -->
-  <div class="column">
-    <div class="col-header andamento">
-      🟡 Em Atendimento
-      <span class="col-count" id="count-andamento">0</span>
-    </div>
-    <div class="col-body" id="body-andamento">
-      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-    </div>
-  </div>
-</div>
+        const esc = s =>
+            String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-<script>
-  /* ── Fix board height after DOM is ready ── */
-  function fixBoardHeight() {
-    const hd  = document.getElementById('hd').offsetHeight;
-    const sb  = document.getElementById('status-bar').offsetHeight;
-    const eb  = document.getElementById('error-bar').offsetHeight;
-    document.getElementById('board').style.height =
-      `calc(100vh - ${hd + sb + eb}px)`;
-  }
+        function statusCls(status = '') {
+            const s = status.toUpperCase();
+            if (s.includes('NOVA')) return 's-nova';
+            if (s.includes('ANDAMENTO') || s.includes('ATENDIMENTO')) return 's-andamento';
+            if (s.includes('AGUARDANDO')) return 's-aguardando';
+            if (s.includes('RESOLV') || s.includes('FECHA') || s.includes('CONCLU')) return 's-resolvida';
+            if (s.includes('CANCEL')) return 's-cancelada';
+            return 's-other';
+        }
 
-  const INTERVAL = 60;
-  const API      = '/tickets';
+        const PRIO_MAP = { '3': '🔴 Alta', '2': '🟡 Média', '1': '🟢 Baixa' };
 
-  const esc = s =>
-    String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
-                   .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        function waitCls(w = '') {
+            const d = parseInt((w.match(/(\d+)\s*d/) || [])[1] ?? '0');
+            if (d >= 7) return 'urgent';
+            if (d >= 3) return 'warning';
+            return '';
+        }
 
-  function statusCls(status = '') {
-    const s = status.toUpperCase();
-    if (s.includes('NOVA'))                                                    return 's-nova';
-    if (s.includes('ANDAMENTO') || s.includes('ATENDIMENTO'))                 return 's-andamento';
-    if (s.includes('AGUARDANDO'))                                              return 's-aguardando';
-    if (s.includes('RESOLV') || s.includes('FECHA') || s.includes('CONCLU')) return 's-resolvida';
-    if (s.includes('CANCEL'))                                                  return 's-cancelada';
-    return 's-other';
-  }
-
-  const PRIO_MAP = { '3':'🔴 Alta', '2':'🟡 Média', '1':'🟢 Baixa' };
-
-  function waitCls(w = '') {
-    const d = parseInt((w.match(/(\d+)\s*d/) || [])[1] ?? '0');
-    if (d >= 7) return 'urgent';
-    if (d >= 3) return 'warning';
-    return '';
-  }
-
-  function card(t) {
-    const sc   = statusCls(t.status);
-    const prio = PRIO_MAP[t.priority];
-    const wc   = waitCls(t.waitTime);
-    return `
+        function card(t) {
+            const sc = statusCls(t.status);
+            const prio = PRIO_MAP[t.priority];
+            const wc = waitCls(t.waitTime);
+            return `
       <div class="card ${sc}">
         <div class="card-header">
           <div class="card-id"><em>#</em>${esc(t.id)}</div>
@@ -395,84 +617,117 @@
           <span class="wait ${wc}">⏱ ${esc(t.waitTime) || '—'}</span>
         </div>
       </div>`;
-  }
+        }
 
-  function emptyCol(msg) {
-    return `<div class="col-empty"><span class="ico">✅</span><span>${msg}</span></div>`;
-  }
+        function emptyCol(msg) {
+            return `<div class="col-empty"><span class="ico">✅</span><span>${msg}</span></div>`;
+        }
 
-  function statsBar(tickets) {
-    const counts = {};
-    for (const t of tickets) {
-      const sc = statusCls(t.status);
-      if (!counts[sc]) counts[sc] = { n: 0, sc };
-      counts[sc].n++;
-    }
-    const names = {
-      's-nova':'Nova','s-andamento':'Em atendimento','s-aguardando':'Aguardando',
-      's-resolvida':'Resolvida/Fechada','s-cancelada':'Cancelada','s-other':'Outros',
-    };
-    return Object.values(counts)
-      .map(({ sc, n }) =>
-        `<div class="pill ${sc}"><span class="dot"></span>${names[sc] || sc} <strong>${n}</strong></div>`)
-      .join('');
-  }
+        function statsBar(tickets) {
+            const counts = {};
+            for (const t of tickets) {
+                const sc = statusCls(t.status);
+                if (!counts[sc]) counts[sc] = { n: 0, sc };
+                counts[sc].n++;
+            }
+            const names = {
+                's-nova': 'Nova', 's-andamento': 'Em atendimento', 's-aguardando': 'Aguardando',
+                's-resolvida': 'Resolvida/Fechada', 's-cancelada': 'Cancelada', 's-other': 'Outros',
+            };
+            return Object.values(counts)
+                .map(({ sc, n }) =>
+                    `<div class="pill ${sc}"><span class="dot"></span>${names[sc] || sc} <strong>${n}</strong></div>`)
+                .join('');
+        }
 
-  function render(tickets) {
-    document.getElementById('status-bar').innerHTML = statsBar(tickets);
-    fixBoardHeight();
+        function render(tickets) {
+            document.getElementById('status-bar').innerHTML = statsBar(tickets);
+            fixBoardHeight();
 
-    const nova      = tickets.filter(t => statusCls(t.status) === 's-nova');
-    const andamento = tickets.filter(t => statusCls(t.status) === 's-andamento');
+            const nova = tickets.filter(t => statusCls(t.status) === 's-nova');
+            const andamento = tickets.filter(t => statusCls(t.status) === 's-andamento');
 
-    document.getElementById('count-nova').textContent      = nova.length;
-    document.getElementById('count-andamento').textContent = andamento.length;
-    document.getElementById('total-count').textContent     = nova.length + andamento.length;
+            document.getElementById('count-nova').textContent = nova.length;
+            document.getElementById('count-andamento').textContent = andamento.length;
+            document.getElementById('total-count').textContent = nova.length + andamento.length;
 
-    document.getElementById('body-nova').innerHTML =
-      nova.length ? nova.map(card).join('') : emptyCol('Sem chamados novos');
-    document.getElementById('body-andamento').innerHTML =
-      andamento.length ? andamento.map(card).join('') : emptyCol('Sem chamados em atendimento');
-  }
+            document.getElementById('body-nova').innerHTML =
+                nova.length ? nova.map(card).join('') : emptyCol('Sem chamados novos');
+            document.getElementById('body-andamento').innerHTML =
+                andamento.length ? andamento.map(card).join('') : emptyCol('Sem chamados em atendimento');
 
-  async function load() {
-    const bar = document.getElementById('error-bar');
-    try {
-      const res = await fetch(API);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      render(await res.json());
-      bar.style.display = 'none';
-      document.getElementById('last-updated').textContent =
-        new Date().toLocaleTimeString('pt-BR',
-          { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    } catch (e) {
-      bar.textContent   = `⚠️ Falha ao carregar dados: ${e.message}. Exibindo última versão.`;
-      bar.style.display = 'block';
-      fixBoardHeight();
-    }
-  }
+            // restart auto-scroll after new content is painted
+            requestAnimationFrame(() => requestAnimationFrame(startAutoScroll));
+        }
 
-  const C = 2 * Math.PI * 10;
-  let left = INTERVAL;
+        async function load() {
+            const bar = document.getElementById('error-bar');
+            try {
+                const res = await fetch(API);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                render(await res.json());
+                bar.style.display = 'none';
+                document.getElementById('last-updated').textContent =
+                    new Date().toLocaleTimeString('pt-BR',
+                        { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            } catch (e) {
+                bar.textContent = `⚠️ Falha ao carregar dados: ${e.message}. Exibindo última versão.`;
+                bar.style.display = 'block';
+                fixBoardHeight();
+            }
+        }
 
-  function tick() {
-    document.getElementById('ring-circle').style.strokeDashoffset =
-      C * (1 - left / INTERVAL);
-    document.getElementById('ring-label').textContent = left;
-  }
+        /* ── Auto-scroll columns during countdown ── */
+        let scrollRAF = null;
 
-  function startCountdown() {
-    left = INTERVAL; tick();
-    setInterval(() => {
-      left = left > 0 ? left - 1 : INTERVAL;
-      if (left === INTERVAL) load();
-      tick();
-    }, 1000);
-  }
+        function startAutoScroll() {
+            if (scrollRAF) { cancelAnimationFrame(scrollRAF); scrollRAF = null; }
 
-  fixBoardHeight();
-  load().then(startCountdown);
-</script>
+            const cols = ['body-nova', 'body-andamento']
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
+
+            // snap back to top instantly
+            cols.forEach(c => { c.scrollTop = 0; });
+
+            // scroll over (INTERVAL - 2) seconds so we arrive just before the reload
+            const duration = (INTERVAL - 2) * 1000;
+            const t0 = performance.now();
+
+            function step(now) {
+                const p = Math.min((now - t0) / duration, 1);
+                cols.forEach(col => {
+                    const max = col.scrollHeight - col.clientHeight;
+                    if (max > 0) col.scrollTop = p * max;
+                });
+                if (p < 1) scrollRAF = requestAnimationFrame(step);
+            }
+
+            scrollRAF = requestAnimationFrame(step);
+        }
+
+        const C = 2 * Math.PI * 10;
+        let left = INTERVAL;
+
+        function tick() {
+            document.getElementById('ring-circle').style.strokeDashoffset =
+                C * (1 - left / INTERVAL);
+            document.getElementById('ring-label').textContent = left;
+        }
+
+        function startCountdown() {
+            left = INTERVAL; tick();
+            setInterval(() => {
+                left = left > 0 ? left - 1 : INTERVAL;
+                if (left === INTERVAL) load();
+                tick();
+            }, 1000);
+        }
+
+        fixBoardHeight();
+        load().then(startCountdown);
+    </script>
 
 </body>
+
 </html>
