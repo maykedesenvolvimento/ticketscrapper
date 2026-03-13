@@ -137,15 +137,11 @@ export class ScraperService {
         // Step 3 — Register listener THEN fire the click
         const responsePromise = page.waitForResponse(
             (res) => res.url().includes(TICKETS_API_PATH),
-            { timeout: 30_000 },
+            { timeout: 60_000 },
         );
 
         this.logger.debug('Clicking Pesquisar (button.btBuscar)');
-        await page.evaluate(() => {
-            const btn = document.querySelector('button.btBuscar') as HTMLElement | null;
-            if (!btn) throw new Error('button.btBuscar not found');
-            btn.click();
-        });
+        await page.click('button.btBuscar');
 
         const response = await responsePromise;
         const json = await response.json() as VirtualIfApiResponse;
