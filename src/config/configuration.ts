@@ -17,6 +17,6 @@ export default () => ({
         password: decodePassword(process.env.VIRTUALIF_PASSWORD),
     },
     scraper: {
-        cron: process.env.SCRAPER_CRON ?? '0 */6 * * *',
+        cron: process.env.SCRAPER_CRON ?? '*/90 * * * * *',
     },
 });

@@ -24,7 +24,7 @@ export class SyncScheduler implements OnApplicationBootstrap {
         await this.sync();
     }
 
-    @Cron(process.env.SCRAPER_CRON ?? '0 */6 * * *', {
+    @Cron(process.env.SCRAPER_CRON ?? '*/90 * * * * *', {
         name: 'ticket-sync',
     })
     async handleCron(): Promise<void> {
