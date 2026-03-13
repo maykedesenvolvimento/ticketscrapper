@@ -606,10 +606,10 @@
               <span class="meta-lbl">Área / Serviço</span>
               <span class="meta-val">${esc(t.area) || '—'}</span>
             </div>
-            <div class="meta-item">
+            ${sc !== 's-nova' ? `<div class="meta-item">
               <span class="meta-lbl">Responsável</span>
-              <span class="meta-val">${esc(t.assignee) || 'Não atribuído'}</span>
-            </div>
+              <span class="meta-val">${esc((t.assignee || '').split(' ')[0]) || '—'}</span>
+            </div>` : ''}
           </div>
         </div>
         <div class="card-footer">
