@@ -24,6 +24,29 @@ export class TicketsService {
         return rawTickets.length;
     }
 
+    /**
+     * Mark previously-active tickets that are absent from the latest scrape as resolved.
+     * VirtualIF only returns open tickets, so absence means the ticket was closed there.
+     */
+    async markAbsentAsResolved(presentIds: string[]): Promise<number> {
+        if (presentIds.length === 0) return 0;
+
+        const stale = await this.repo
+            .createQueryBuilder('t')
+            .where('t.id NOT IN (:...ids)', { ids: presentIds })
+            .andWhere(
+                "(UPPER(t.status) LIKE '%NOVA%' OR UPPER(t.status) LIKE '%ATENDIMENTO%' OR UPPER(t.status) LIKE '%ANDAMENTO%')",
+            )
+            .getMany();
+
+        if (stale.length === 0) return 0;
+
+        for (const t of stale) t.status = 'RESOLVIDA';
+        await this.repo.save(stale);
+        this.logger.log(`Marked ${stale.length} absent active ticket(s) as resolved`);
+        return stale.length;
+    }
+
     /** Return all tickets, newest first. */
     findAll(): Promise<Ticket[]> {
         return this.repo.find({ order: { updatedAt: 'DESC' } });

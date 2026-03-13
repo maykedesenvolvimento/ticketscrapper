@@ -41,8 +41,10 @@ export class SyncScheduler implements OnApplicationBootstrap {
         }
 
         const upserted = await this.ticketsService.upsertMany(result.tickets);
+        const presentIds = result.tickets.map(t => t.id);
+        const closed = await this.ticketsService.markAbsentAsResolved(presentIds);
         this.logger.log(
-            `Sync completed — ${result.tickets.length} scraped, ${upserted} upserted at ${result.scrapedAt.toISOString()}`,
+            `Sync completed — ${result.tickets.length} scraped, ${upserted} upserted, ${closed} auto-closed at ${result.scrapedAt.toISOString()}`,
         );
     }
 }
