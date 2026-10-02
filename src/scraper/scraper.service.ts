@@ -85,9 +85,9 @@ export class ScraperService {
 
         this.logger.debug(`Navigating to login page: ${loginUrl}`);
         await page.goto(loginUrl, { waitUntil: 'networkidle' });
-        await page.fill('#usuario', username);
-        await page.fill('#senha', password);
-        await page.click('#btnEntrar');
+        await page.fill('#username', username);
+        await page.fill('#password', password);
+        await page.click('#kc-login');
         await page.waitForLoadState('networkidle');
         this.logger.debug('Login successful');
     }
