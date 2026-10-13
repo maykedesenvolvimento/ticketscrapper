@@ -32,7 +32,22 @@ export class SyncScheduler implements OnApplicationBootstrap {
         await this.sync();
     }
 
+    private running = false;
+
     private async sync(): Promise<void> {
+        if (this.running) {
+            this.logger.warn('Previous sync still running — skipping');
+            return;
+        }
+        this.running = true;
+        try {
+            await this.runSync();
+        } finally {
+            this.running = false;
+        }
+    }
+
+    private async runSync(): Promise<void> {
         const result = await this.scraperService.scrape();
 
         if (!result.success) {

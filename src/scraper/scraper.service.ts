@@ -99,11 +99,16 @@ export class ScraperService {
     private async openGssModule(page: Page): Promise<Page> {
         this.logger.debug('Opening GSS module (new tab)');
 
-        const [gssPage] = await Promise.all([
-            page.context().waitForEvent('page'),
-            page.click('a[href*="modulo=GSS"]'),
-        ]);
+        // The module may open in a new tab or in the current one, depending on the portal version.
+        const newPagePromise = page
+            .context()
+            .waitForEvent('page', { timeout: 10_000 })
+            .catch(() => null);
 
+        // The sidebar menu also has a hidden link to the same module, so target the visible one.
+        await page.locator('a.moduloLink[href*="modulo=GSS"]').first().click();
+
+        const gssPage = (await newPagePromise) ?? page;
         await gssPage.waitForLoadState('networkidle');
         this.logger.debug(`GSS module opened: ${gssPage.url()}`);
         return gssPage;
